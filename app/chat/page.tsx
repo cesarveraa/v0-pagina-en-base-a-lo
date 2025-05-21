@@ -56,60 +56,53 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  const handleSendMessage = () => {
+   const handleSendMessage = async () => {
     if (message.trim() === "") return
 
-    // Add user message
+    // 1) Añade el mensaje del usuario
     const userMessage: Message = {
       id: messages.length + 1,
       sender: "user",
       text: message,
       timestamp: new Date(),
     }
-
     const updatedMessages = [...messages, userMessage]
     setMessages(updatedMessages)
     setMessage("")
 
-    // Save to localStorage
     if (typeof window !== "undefined") {
       localStorage.setItem("chatMessages", JSON.stringify(updatedMessages))
     }
 
-    // Show typing indicator
+    // 2) Lanza el indicador de escritura
     setIsTyping(true)
 
-    // Simulate Samuel's response after a short delay
-    setTimeout(() => {
-      setIsTyping(false)
+    try {
+      // 3) Envía la consulta al backend
+      const res = await fetch("https://server-crj.vercel.app/api/responder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: userMessage.text }),
+      })
+      const { response } = await res.json()
 
-      const responses = [
-        "En mi plan de 100 días, garantizaremos la estabilidad económica y el suministro de combustibles. Esto es fundamental para recuperar la confianza de los bolivianos y reactivar nuestra economía.",
-        "Mi propuesta incluye 500.000 plazas técnicas en 5 años para reducir el desempleo juvenil. La formación técnica es clave para el desarrollo de Bolivia y la generación de oportunidades reales.",
-        "La transparencia es fundamental. Implementaremos auditorías en tiempo real de todas las empresas públicas y haremos que la información sea accesible para todos los ciudadanos.",
-        "Para La Paz, modernizaremos el transporte público con flotas eléctricas y mejoraremos el suministro de agua. La calidad de vida de los paceños es una prioridad en mi gobierno.",
-        "Creo firmemente en una economía de mercado con rostro social, que genere oportunidades para todos los bolivianos. El sector privado debe ser un aliado del desarrollo, no un enemigo.",
-        "¡Gracias por tu interés! Te invito a unirte como voluntario en nuestra campaña. Juntos podemos construir un mejor futuro para Bolivia en solo 100 días, ¡carajo!",
-        "En materia de salud, implementaremos un sistema de telemedicina que llegue a las zonas más alejadas del país, garantizando atención médica de calidad para todos los bolivianos.",
-        "La educación es la base del desarrollo. Impulsaremos un modelo educativo que combine la formación académica con habilidades prácticas para el mundo laboral actual.",
-        "El litio es un recurso estratégico para Bolivia. Mi gobierno garantizará que los beneficios de su explotación lleguen directamente a los bolivianos, con transparencia y eficiencia.",
-      ]
-
-      const samuelResponse: Message = {
-        id: messages.length + 2,
+      // 4) Añade la respuesta de Samuel
+      const samuelMessage: Message = {
+        id: updatedMessages.length + 1,
         sender: "samuel",
-        text: responses[Math.floor(Math.random() * responses.length)],
+        text: response,
         timestamp: new Date(),
       }
+      const newMessages = [...updatedMessages, samuelMessage]
+      setMessages(newMessages)
+      localStorage.setItem("chatMessages", JSON.stringify(newMessages))
 
-      const newUpdatedMessages = [...updatedMessages, samuelResponse]
-      setMessages(newUpdatedMessages)
-
-      // Save to localStorage
-      if (typeof window !== "undefined") {
-        localStorage.setItem("chatMessages", JSON.stringify(newUpdatedMessages))
-      }
-    }, 2000)
+    } catch (err) {
+      console.error("Error al llamar al API:", err)
+      // Opcional: podrías mostrar un mensaje de error en el chat
+    } finally {
+      setIsTyping(false)
+    }
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
