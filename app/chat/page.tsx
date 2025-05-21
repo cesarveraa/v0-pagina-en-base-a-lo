@@ -1,12 +1,18 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Send, ArrowLeft, Minimize2, Calendar, MapPin, FileText, Info, MessageSquare } from "lucide-react"
-import { useRouter, useSearchParams } from "next/navigation"
+import {
+  Send,
+  ArrowLeft,
+  Minimize2,
+  Calendar,
+  MapPin,
+  FileText,
+  Info,
+  MessageSquare,
+} from "lucide-react"
 
 type Message = {
   id: number
@@ -16,39 +22,27 @@ type Message = {
 }
 
 export default function ChatPage() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const initialMessages = searchParams.get("messages")
-
   const [message, setMessage] = useState("")
   const [messages, setMessages] = useState<Message[]>(() => {
-    // Default initial message
-    const defaultMessages = [
+    const defaultMessages: Message[] = [
       {
         id: 1,
-        sender: "samuel" as const,
+        sender: "samuel",
         text: "¡Hola! Soy Samuel Doria Medina. Estoy aquí para responder tus preguntas sobre mis propuestas para Bolivia. ¿En qué puedo ayudarte hoy?",
         timestamp: new Date(),
       },
     ]
-
-    // Check localStorage
     if (typeof window !== "undefined") {
-      const savedMessages = localStorage.getItem("chatMessages")
-      if (savedMessages) {
+      const saved = localStorage.getItem("chatMessages")
+      if (saved) {
         try {
-          const parsedMessages = JSON.parse(savedMessages)
-          // Convert string timestamps back to Date objects
-          return parsedMessages.map((msg: any) => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp),
+          return JSON.parse(saved).map((m: any) => ({
+            ...m,
+            timestamp: new Date(m.timestamp),
           }))
-        } catch (e) {
-          console.error("Error parsing saved messages:", e)
-        }
+        } catch {}
       }
     }
-
     return defaultMessages
   })
 
@@ -56,50 +50,58 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
-   const handleSendMessage = async () => {
-    if (message.trim() === "") return
+  const addMessage = (msg: Message) => {
+    setMessages((prev) => {
+      const next = [...prev, msg]
+      if (typeof window !== "undefined") {
+        localStorage.setItem("chatMessages", JSON.stringify(next))
+      }
+      return next
+    })
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    }, 50)
+  }
 
-    // 1) Añade el mensaje del usuario
-    const userMessage: Message = {
+  const handleSendMessage = async () => {
+    if (!message.trim()) return
+
+    const userMsg: Message = {
       id: messages.length + 1,
       sender: "user",
-      text: message,
+      text: message.trim(),
       timestamp: new Date(),
     }
-    const updatedMessages = [...messages, userMessage]
-    setMessages(updatedMessages)
+    addMessage(userMsg)
     setMessage("")
+    inputRef.current?.focus()
 
-    if (typeof window !== "undefined") {
-      localStorage.setItem("chatMessages", JSON.stringify(updatedMessages))
-    }
-
-    // 2) Lanza el indicador de escritura
     setIsTyping(true)
-
     try {
-      // 3) Envía la consulta al backend
       const res = await fetch("https://server-crj.vercel.app/api/responder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: userMessage.text }),
+        body: JSON.stringify({ query: userMsg.text }),
       })
       const { response } = await res.json()
 
-      // 4) Añade la respuesta de Samuel
-      const samuelMessage: Message = {
-        id: updatedMessages.length + 1,
+      const samuelMsg: Message = {
+        id: userMsg.id + 1,
         sender: "samuel",
         text: response,
         timestamp: new Date(),
       }
-      const newMessages = [...updatedMessages, samuelMessage]
-      setMessages(newMessages)
-      localStorage.setItem("chatMessages", JSON.stringify(newMessages))
+      addMessage(samuelMsg)
 
     } catch (err) {
-      console.error("Error al llamar al API:", err)
-      // Opcional: podrías mostrar un mensaje de error en el chat
+      console.error(err)
+      // Optionally show an error message in chat:
+      addMessage({
+        id: messages.length + 2,
+        sender: "samuel",
+        text: "Lo siento, ha ocurrido un error al enviar tu mensaje.",
+        timestamp: new Date(),
+      })
     } finally {
       setIsTyping(false)
     }
@@ -112,25 +114,9 @@ export default function ChatPage() {
     }
   }
 
-  // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages, isTyping])
+  const formatTimestamp = (ts: Date) =>
+    ts.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
 
-  // Focus input on load
-  useEffect(() => {
-    inputRef.current?.focus()
-  }, [])
-
-  // Format timestamp for display
-  const formatTimestamp = (timestamp: Date) => {
-    if (!(timestamp instanceof Date)) {
-      timestamp = new Date(timestamp)
-    }
-    return timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-  }
-
-  // Suggested topics
   const suggestedTopics = [
     { icon: <Calendar className="h-4 w-4" />, text: "Plan 100 días" },
     { icon: <MapPin className="h-4 w-4" />, text: "Propuestas para mi región" },
@@ -142,7 +128,6 @@ export default function ChatPage() {
     setMessage(topic)
     inputRef.current?.focus()
   }
-
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
