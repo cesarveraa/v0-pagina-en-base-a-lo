@@ -24,7 +24,22 @@ type Message = {
 export default function ChatPage() {
   const [message, setMessage] = useState("")
   const [messages, setMessages] = useState<Message[]>(() => {
-    const defaultMessages: Message[] = [
+    const saved = typeof window !== "undefined"
+      ? localStorage.getItem("chatMessages")
+      : null
+
+    if (saved) {
+      try {
+        return JSON.parse(saved).map((m: any) => ({
+          ...m,
+          timestamp: new Date(m.timestamp),
+        }))
+      } catch {
+        /* fall-back */
+      }
+    }
+
+    return [
       {
         id: 1,
         sender: "samuel",
@@ -32,25 +47,14 @@ export default function ChatPage() {
         timestamp: new Date(),
       },
     ]
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("chatMessages")
-      if (saved) {
-        try {
-          return JSON.parse(saved).map((m: any) => ({
-            ...m,
-            timestamp: new Date(m.timestamp),
-          }))
-        } catch {}
-      }
-    }
-    return defaultMessages
   })
 
   const [isTyping, setIsTyping] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  const addMessage = (msg: Message) => {
+  // Guarda y hace scroll
+  const pushMessage = (msg: Message) => {
     setMessages((prev) => {
       const next = [...prev, msg]
       if (typeof window !== "undefined") {
@@ -63,43 +67,50 @@ export default function ChatPage() {
     }, 50)
   }
 
+  // Envía la petición al backend
   const handleSendMessage = async () => {
-    if (!message.trim()) return
+    const text = message.trim()
+    if (!text) return
 
+    // 1) Muestra usuario
     const userMsg: Message = {
       id: messages.length + 1,
       sender: "user",
-      text: message.trim(),
+      text,
       timestamp: new Date(),
     }
-    addMessage(userMsg)
+    pushMessage(userMsg)
     setMessage("")
     inputRef.current?.focus()
 
+    // 2) Indica “Samuel está escribiendo”
     setIsTyping(true)
+
     try {
-      const res = await fetch("https://server-crj.vercel.app/api/responder", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: userMsg.text }),
-      })
+      const res = await fetch(
+        "https://server-crj.vercel.app/api/responder",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: text }),
+        }
+      )
       const { response } = await res.json()
 
+      // 3) Muestra respuesta
       const samuelMsg: Message = {
         id: userMsg.id + 1,
         sender: "samuel",
         text: response,
         timestamp: new Date(),
       }
-      addMessage(samuelMsg)
-
+      pushMessage(samuelMsg)
     } catch (err) {
       console.error(err)
-      // Optionally show an error message in chat:
-      addMessage({
+      pushMessage({
         id: messages.length + 2,
         sender: "samuel",
-        text: "Lo siento, ha ocurrido un error al enviar tu mensaje.",
+        text: "Lo siento, hubo un error al enviar tu mensaje.",
         timestamp: new Date(),
       })
     } finally {
@@ -107,6 +118,7 @@ export default function ChatPage() {
     }
   }
 
+  // Enviar con Enter
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
@@ -114,6 +126,13 @@ export default function ChatPage() {
     }
   }
 
+  // Focus inicial y scroll en cada mensaje
+  useEffect(() => {
+    inputRef.current?.focus()
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [])
+
+  // Formatea hora
   const formatTimestamp = (ts: Date) =>
     ts.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
 
@@ -124,11 +143,13 @@ export default function ChatPage() {
     { icon: <Info className="h-4 w-4" />, text: "Sobre Samuel" },
   ]
 
+  // Click en sugerido
   const handleTopicClick = (topic: string) => {
     setMessage(topic)
     inputRef.current?.focus()
   }
-  return (
+
+ return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <div className="hidden md:block w-64 bg-white border-r border-gray-200">
@@ -214,75 +235,54 @@ export default function ChatPage() {
             </Link>
           </div>
         </header>
-
-        {/* Chat area */}
+        {/* Chat */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6">
           <div className="max-w-3xl mx-auto space-y-6">
-            {/* Welcome message */}
-            <div className="bg-primary/5 rounded-lg p-4 mb-6 text-center">
-              <h2 className="font-bold text-primary mb-2">Bienvenido al chat con Samuel Doria Medina</h2>
-              <p className="text-sm text-gray-600">
-                Pregúntame sobre mis propuestas para Bolivia o selecciona un tema de interés.
-              </p>
-            </div>
-
             {messages.map((msg) => (
               <div
                 key={msg.id}
-                className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-2 duration-300`}
+                className={`flex ${
+                  msg.sender === "user" ? "justify-end" : "justify-start"
+                }`}
               >
                 {msg.sender === "samuel" && (
-                  <div className="flex-shrink-0 mr-3 self-end">
-                    <Image
-                      src="/placeholder.svg?height=40&width=40"
-                      alt="Samuel Doria Medina"
-                      width={40}
-                      height={40}
-                      className="rounded-full object-cover border-2 border-white shadow-sm"
-                    />
-                  </div>
+                  <Image
+                    src="/placeholder.svg"
+                    alt="Samuel"
+                    width={40}
+                    height={40}
+                    className="rounded-full mr-3"
+                  />
                 )}
                 <div
                   className={`max-w-[80%] p-4 rounded-2xl shadow-sm ${
                     msg.sender === "user"
                       ? "bg-primary text-white rounded-br-none"
-                      : "bg-white border border-gray-100 rounded-bl-none"
+                      : "bg-white border rounded-bl-none"
                   }`}
                 >
-                  <p className="whitespace-pre-wrap leading-relaxed">{msg.text}</p>
-                  <p className={`text-xs mt-2 ${msg.sender === "user" ? "text-white/70" : "text-gray-400"}`}>
+                  <p>{msg.text}</p>
+                  <p className="text-xs mt-1 text-gray-400">
                     {formatTimestamp(msg.timestamp)}
                   </p>
                 </div>
               </div>
             ))}
 
-            {/* Typing indicator */}
             {isTyping && (
-              <div className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <div className="flex-shrink-0 mr-3 self-end">
-                  <Image
-                    src="/placeholder.svg?height=40&width=40"
-                    alt="Samuel Doria Medina"
-                    width={40}
-                    height={40}
-                    className="rounded-full object-cover border-2 border-white shadow-sm"
-                  />
-                </div>
-                <div className="bg-white border border-gray-100 rounded-2xl rounded-bl-none p-4 shadow-sm max-w-[80%]">
-                  <div className="flex space-x-2">
-                    <div
-                      className="w-2 h-2 bg-gray-300 rounded-full animate-bounce"
-                      style={{ animationDelay: "0ms" }}
-                    ></div>
-                    <div
-                      className="w-2 h-2 bg-gray-300 rounded-full animate-bounce"
-                      style={{ animationDelay: "150ms" }}
-                    ></div>
-                    <div
-                      className="w-2 h-2 bg-gray-300 rounded-full animate-bounce"
-                      style={{ animationDelay: "300ms" }}
-                    ></div>
+              <div className="flex justify-start">
+                <Image
+                  src="/placeholder.svg"
+                  alt="Samuel typing"
+                  width={40}
+                  height={40}
+                  className="rounded-full mr-3 opacity-60"
+                />
+                <div className="p-4 bg-white border rounded-2xl rounded-bl-none">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" />
+                    <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" />
+                    <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" />
                   </div>
                 </div>
               </div>
@@ -292,47 +292,38 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* Input area */}
-        <div className="border-t border-gray-200 bg-white p-4 md:p-6">
-          <div className="max-w-3xl mx-auto">
-            {/* Suggested topics */}
-            <div className="mb-4 flex flex-wrap gap-2">
-              {suggestedTopics.map((topic, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleTopicClick(topic.text)}
-                  className="flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm py-1.5 px-3 rounded-full transition-colors"
-                >
-                  {topic.icon}
-                  <span>{topic.text}</span>
-                </button>
-              ))}
-            </div>
-
-            <div className="flex items-center bg-gray-50 rounded-2xl border border-gray-200 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
-              <textarea
-                ref={inputRef}
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyDown={handleKeyPress}
-                placeholder="Escribe tu mensaje a Samuel..."
-                className="flex-1 bg-transparent py-3 px-4 focus:outline-none resize-none min-h-[50px] max-h-[120px]"
-                rows={1}
-              />
+        {/* Input */}
+        <div className="p-4 border-t bg-white">
+          <div className="flex items-center gap-2 mb-4">
+            {suggestedTopics.map((topic, i) => (
               <button
-                onClick={handleSendMessage}
-                disabled={message.trim() === "" || isTyping}
-                className="bg-primary text-white p-3 rounded-full mr-2 hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                aria-label="Enviar mensaje"
+                key={i}
+                onClick={() => handleTopicClick(topic.text)}
+                className="flex items-center gap-1.5 bg-gray-100 px-3 py-1.5 rounded-full"
               >
-                <Send className="h-5 w-5" />
+                {topic.icon}
+                {topic.text}
               </button>
-            </div>
+            ))}
+          </div>
 
-            <div className="mt-3 flex items-center justify-center gap-2 text-xs text-gray-500">
-              <MessageSquare className="h-3 w-3" />
-              <span>Las respuestas son generadas automáticamente basadas en las propuestas de campaña</span>
-            </div>
+          <div className="flex items-center bg-gray-50 border rounded-2xl px-4 py-2">
+            <textarea
+              ref={inputRef}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={handleKeyPress}
+              placeholder="Escribe tu mensaje a Samuel..."
+              className="flex-1 bg-transparent resize-none focus:outline-none"
+              rows={1}
+            />
+            <button
+              onClick={handleSendMessage}
+              disabled={!message.trim() || isTyping}
+              className="p-2 rounded-full bg-primary text-white disabled:opacity-50"
+            >
+              <Send />
+            </button>
           </div>
         </div>
       </div>
