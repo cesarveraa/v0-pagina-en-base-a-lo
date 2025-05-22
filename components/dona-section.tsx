@@ -39,9 +39,9 @@ export default function DonaSection() {
   return (
     <section id="dona" className="section bg-primary text-white">
       <div className="container">
-        <h2 className="section-title text-white">Dona para Hacerlo Posible</h2>
+        <h2 className="section-title text-white">Dona para Acabaar con el MAS</h2>
         <p className="text-center text-lg mb-12 max-w-3xl mx-auto">
-          Cada contribución impulsa acciones concretas en tu departamento
+          Cada contribución impulsa acciones concretas contra el MAS 
         </p>
 
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
