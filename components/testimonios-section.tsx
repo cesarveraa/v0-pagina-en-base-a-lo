@@ -101,18 +101,7 @@ export default function TestimoniosSection() {
           </div>
         </div>
 
-        {/* Logos */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center">
-          {logos.map((logo, index) => (
-            <div key={index} className="flex justify-center">
-              <img
-                src={logo || "/placeholder.svg"}
-                alt={`Organización que apoya a Samuel Doria Medina ${index + 1}`}
-                className="h-16 object-contain grayscale hover:grayscale-0 transition-all"
-              />
-            </div>
-          ))}
-        </div>
+        
       </div>
     </section>
   )

@@ -24,7 +24,7 @@ export default function Plan100Section() {
           <div className="aspect-video bg-black/20 rounded-lg overflow-hidden shadow-2xl transform transition-transform hover:scale-[1.02]">
             <iframe
               className="w-full h-full"
-              src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+              src="https://www.youtube.com/embed/z2Ue40N1IgU"
               title="Plan 100 Días"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen

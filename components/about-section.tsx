@@ -38,7 +38,7 @@ export default function AboutSection() {
           {/* Left Column - Image */}
           <div className="relative h-[400px] md:h-full rounded-lg overflow-hidden shadow-xl transform transition-transform hover:scale-[1.02]">
             <Image
-              src="/placeholder.svg?height=600&width=800"
+              src="images\samuel_coo_veciono2.jpg"
               alt="Samuel conversando con vecinos en La Paz"
               fill
               className="object-cover"

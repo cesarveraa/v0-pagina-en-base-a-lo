@@ -1,34 +1,68 @@
-"use client"
+"use client";
 
-import { useEffect, useRef } from "react"
-import Link from "next/link"
+import { useEffect, useRef, useState, ChangeEvent } from "react";
+import Link from "next/link";
 
-export default function Hero() {
-  const videoRef = useRef<HTMLVideoElement>(null)
+interface HeroProps {
+  videoSrc?: string;
+  posterSrc?: string;
+}
+
+export default function Hero({
+  videoSrc = "/videos/video inicio.mp4",
+  posterSrc = "/placeholder.svg?height=1080&width=1920",
+}: HeroProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [currentSrc, setCurrentSrc] = useState<string>(videoSrc);
 
   useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.play().catch((error) => {
-        console.error("Error playing video:", error)
-      })
+    videoRef.current?.play().catch((error) => {
+      console.error("Error playing video:", error);
+    });
+  }, [currentSrc]);
+
+  function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setCurrentSrc(url);
     }
-  }, [])
+  }
+
+  function openFileDialog() {
+    inputRef.current?.click();
+  }
 
   return (
-    <section id="hero" className="relative h-screen flex items-center justify-center overflow-hidden">
+    <section
+      id="hero"
+      className="relative h-screen flex items-center justify-center overflow-hidden"
+    >
+      
+      {/* Input oculto */}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="video/*"
+        onChange={handleFileChange}
+        className="hidden"
+      />
+
       {/* Video Background */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-primary/60 z-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-primary/60 z-10" />
         <video
           ref={videoRef}
+          key={currentSrc}
           className="w-full h-full object-cover"
           autoPlay
           muted
           loop
           playsInline
-          poster="/placeholder.svg?height=1080&width=1920"
+          poster={posterSrc}
         >
-          <source src="/placeholder.svg?height=1080&width=1920" type="video/mp4" />
+          <source src={currentSrc} type="video/mp4" />
           Tu navegador no soporta videos HTML5.
         </video>
       </div>
@@ -57,11 +91,11 @@ export default function Hero() {
 
         {/* Decorative element - Bolivian flag colors */}
         <div className="absolute bottom-0 left-0 right-0 h-2 flex">
-          <div className="w-1/3 bg-[#D52B1E]"></div> {/* Red */}
-          <div className="w-1/3 bg-[#F9E300]"></div> {/* Yellow */}
-          <div className="w-1/3 bg-[#007934]"></div> {/* Green */}
+          <div className="w-1/3 bg-[#D52B1E]" />
+          <div className="w-1/3 bg-[#F9E300]" />
+          <div className="w-1/3 bg-[#007934]" />
         </div>
       </div>
     </section>
-  )
+  );
 }
