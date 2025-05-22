@@ -211,7 +211,7 @@ export default function ChatPage() {
             <div className="flex items-center">
               <div className="relative">
                 <Image
-                  src="/placeholder.svg"
+                  src="/images/perfil.jpg"
                   alt="Samuel"
                   width={48}
                   height={48}
@@ -241,7 +241,7 @@ export default function ChatPage() {
                 {msg.sender === "samuel" && (
                   <div className="flex-shrink-0 mr-3">
                     <Image
-                      src="/placeholder.svg"
+                      src="/images/perfil.jpg"
                       alt="Samuel"
                       width={40}
                       height={40}
@@ -268,7 +268,7 @@ export default function ChatPage() {
               <div className="flex justify-start">
                 <div className="flex-shrink-0 mr-3">
                   <Image
-                    src="/placeholder.svg"
+                    src="/images/perfil.jpg"
                     alt="Samuel typing"
                     width={40}
                     height={40}
