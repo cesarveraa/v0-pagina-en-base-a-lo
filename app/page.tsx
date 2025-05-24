@@ -12,6 +12,7 @@ import DonaSection from "@/components/dona-section"
 import ContactoSection from "@/components/contacto-section"
 import Footer from "@/components/footer"
 import FloatingButton from "@/components/floating-button"
+import ElevenLabsWrapper from "@/components/ElevenLabsWrapper"
 
 export default function Home() {
   return (
@@ -30,6 +31,7 @@ export default function Home() {
       <ContactoSection />
       <Footer />
       <FloatingButton />
+      <ElevenLabsWrapper />
     </main>
   )
 }

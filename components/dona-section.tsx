@@ -41,7 +41,7 @@ export default function DonaSection() {
       <div className="container">
         <h2 className="section-title text-white">Dona para Acabaar con el MAS</h2>
         <p className="text-center text-lg mb-12 max-w-3xl mx-auto">
-          Cada contribución impulsa acciones concretas contra el MAS 
+          Cada contribución impulsa acciones concretas contra el MAS
         </p>
 
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
@@ -138,8 +138,8 @@ export default function DonaSection() {
             <div className="bg-white/10 rounded-lg p-6">
               <h3 className="text-xl font-bold mb-4">Progreso de Recaudación</h3>
               <div className="mb-2 flex justify-between">
-                <span>Bs. {raised.toLocaleString()}</span>
-                <span>Meta: Bs. {target.toLocaleString()}</span>
+                <span>Bs. {raised.toLocaleString("es-BO")}</span>
+                <span>Meta: Bs. {target.toLocaleString("es-BO")}</span>
               </div>
               <div className="w-full bg-white/20 rounded-full h-4 mb-4">
                 <div className="bg-accent h-4 rounded-full" style={{ width: `${progress}%` }}></div>
