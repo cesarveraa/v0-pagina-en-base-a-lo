@@ -15,6 +15,7 @@ const navLinks = [
   { label: "Dona", href: "#dona", ariaLabel: "Donaciones a la campaña" },
   { label: "Contacto", href: "#contacto", ariaLabel: "Formulario de Contacto" },
   { label: "Chat con Samuel", href: "/chat", ariaLabel: "Chatear con Samuel Doria Medina" },
+  { label: "Chat con el capitan Lara", href: "/chat_lara", ariaLabel: "Chatear con El capitan Lara" },
 ];
 
 export default function Header() {
