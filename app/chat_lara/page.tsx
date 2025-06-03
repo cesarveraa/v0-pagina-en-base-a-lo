@@ -12,11 +12,14 @@ import {
   FileText,
   Info,
   MessageSquare,
+  ShieldCheck,
+  Rocket,
+  Speaker,
 } from "lucide-react"
 
 type Message = {
   id: number
-  sender: "user" | "samuel"
+  sender: "user" | "lara"
   text: string
   timestamp: Date
 }
@@ -25,7 +28,7 @@ export default function ChatPage() {
   const [message, setMessage] = useState("")
   const [messages, setMessages] = useState<Message[]>(() => {
     const saved = typeof window !== "undefined"
-      ? localStorage.getItem("chatMessagesDoria")
+      ? localStorage.getItem("chatMessagesLara")
       : null
 
     if (saved) {
@@ -42,8 +45,8 @@ export default function ChatPage() {
     return [
       {
         id: 1,
-        sender: "samuel",
-        text: "¡Hola! Soy Samuel Doria Medina. Estoy aquí para responder tus preguntas sobre mis propuestas para Bolivia. ¿En qué puedo ayudarte hoy?",
+        sender: "lara",
+        text: "¡Hola! Soy Edman Lara Montaño, ex capitán de la Policía Boliviana. Estoy aquí para responder tus preguntas sobre mis propuestas para Bolivia. ¿En qué puedo ayudarte hoy?",
         timestamp: new Date(),
       },
     ]
@@ -83,12 +86,12 @@ export default function ChatPage() {
     setMessage("")
     inputRef.current?.focus()
 
-    // 2) Indica “Samuel está escribiendo”
+    // 2) Indica Lara está escribiendo”
     setIsTyping(true)
 
     try {
       const res = await fetch(
-        "https://server-crj.vercel.app/api/responder",
+        "https://server-crj.vercel.app/api/responder_capitan",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -100,7 +103,7 @@ export default function ChatPage() {
       // 3) Muestra respuesta
       const samuelMsg: Message = {
         id: userMsg.id + 1,
-        sender: "samuel",
+        sender: "lara",
         text: response,
         timestamp: new Date(),
       }
@@ -109,7 +112,7 @@ export default function ChatPage() {
       console.error(err)
       pushMessage({
         id: messages.length + 2,
-        sender: "samuel",
+        sender: "lara",
         text: "Lo siento, hubo un error al enviar tu mensaje.",
         timestamp: new Date(),
       })
@@ -137,10 +140,10 @@ export default function ChatPage() {
     ts.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
 
   const suggestedTopics = [
-    { icon: <Calendar className="h-4 w-4" />, text: "Plan 100 días" },
-    { icon: <MapPin className="h-4 w-4" />, text: "Propuestas para mi región" },
-    { icon: <FileText className="h-4 w-4" />, text: "Reforma económica" },
-    { icon: <Info className="h-4 w-4" />, text: "Sobre Samuel" },
+    { icon: <ShieldCheck className="h-4 w-4" />, text: "Seguridad ciudadana y orden" },
+    { icon: <Rocket className="h-4 w-4" />, text: "Empleo y emprendimiento libre" },
+    { icon: <Speaker className="h-4 w-4" />, text: "Mis denuncias más importantes" },
+
   ]
 
   // Click en sugerido
@@ -149,7 +152,7 @@ export default function ChatPage() {
     inputRef.current?.focus()
   }
 
- return (
+  return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <div className="hidden md:block w-64 bg-white border-r border-gray-200">
@@ -198,7 +201,7 @@ export default function ChatPage() {
         </div>
       </div>
 
-       {/* Chat Container */}
+      {/* Chat Container */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <header className="bg-white border-b border-gray-200 py-3 px-4 md:px-6 flex items-center justify-between shadow-sm">
@@ -211,8 +214,8 @@ export default function ChatPage() {
             <div className="flex items-center">
               <div className="relative">
                 <Image
-                  src="/images/perfil.jpg"
-                  alt="Samuel"
+                  src="/images/lara.jpg"
+                  alt="Lara"
                   width={48}
                   height={48}
                   className="h-10 w-10 sm:h-12 sm:w-12 rounded-full object-cover border-2 border-accent"
@@ -220,7 +223,7 @@ export default function ChatPage() {
                 <span className="absolute bottom-0 right-0 block h-3 w-3 bg-green-500 rounded-full border-2 border-white" />
               </div>
               <div className="ml-3">
-                <h1 className="font-bold text-gray-800 text-lg sm:text-xl">Samuel Doria Medina</h1>
+                <h1 className="font-bold text-gray-800 text-lg sm:text-xl">Edman Lara Montaño</h1>
                 <p className="text-xs sm:text-sm text-gray-500">Candidato Presidencial 2025 • En línea</p>
               </div>
             </div>
@@ -238,11 +241,11 @@ export default function ChatPage() {
                 key={msg.id}
                 className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
               >
-                {msg.sender === "samuel" && (
+                {msg.sender === "lara" && (
                   <div className="flex-shrink-0 mr-3">
                     <Image
-                      src="/images/perfil.jpg"
-                      alt="Samuel"
+                      src="/images/lara.jpg"
+                      alt="Capitan Lara"
                       width={40}
                       height={40}
                       className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover"
@@ -250,11 +253,10 @@ export default function ChatPage() {
                   </div>
                 )}
                 <div
-                  className={`max-w-[80%] p-4 rounded-2xl shadow-sm ${
-                    msg.sender === "user"
+                  className={`max-w-[80%] p-4 rounded-2xl shadow-sm ${msg.sender === "user"
                       ? "bg-primary text-white rounded-br-none"
                       : "bg-white border rounded-bl-none"
-                  }`}
+                    }`}
                 >
                   <p className="text-sm sm:text-base">{msg.text}</p>
                   <p className="text-xs sm:text-sm mt-1 text-gray-400">
@@ -268,8 +270,8 @@ export default function ChatPage() {
               <div className="flex justify-start">
                 <div className="flex-shrink-0 mr-3">
                   <Image
-                    src="/images/perfil.jpg"
-                    alt="Samuel typing"
+                    src="/images/lara.jpg"
+                    alt="Capitan Lara typing"
                     width={40}
                     height={40}
                     className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover opacity-60"
@@ -309,7 +311,7 @@ export default function ChatPage() {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyPress}
-              placeholder="Escribe tu mensaje a Samuel..."
+              placeholder="Escribe tu mensaje a el Capitan Lara..."
               className="flex-1 bg-transparent resize-none focus:outline-none text-sm sm:text-base"
               rows={1}
             />

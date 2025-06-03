@@ -21,6 +21,7 @@ const navLinks = [
     href: "", // lo dejamos vacío porque manejamos onClick
     ariaLabel: "Abrir chat externo (Character.ai)",
   },
+  { label: "Chat con el capitan Lara", href: "/chat_lara", ariaLabel: "Chatear con El capitan Lara" },
 ];
 
 export default function Header() {
