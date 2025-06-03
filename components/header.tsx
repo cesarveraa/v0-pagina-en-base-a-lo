@@ -15,6 +15,12 @@ const navLinks = [
   { label: "Dona", href: "#dona", ariaLabel: "Donaciones a la campaña" },
   { label: "Contacto", href: "#contacto", ariaLabel: "Formulario de Contacto" },
   { label: "Chat con Samuel", href: "/chat", ariaLabel: "Chatear con Samuel Doria Medina" },
+  // ← Para “Chat Externo” NO usamos href, sino onClick
+  {
+    label: "Chat Externo",
+    href: "", // lo dejamos vacío porque manejamos onClick
+    ariaLabel: "Abrir chat externo (Character.ai)",
+  },
 ];
 
 export default function Header() {
@@ -29,15 +35,21 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Función para abrir Character.ai en nueva pestaña
+  const openExternalChat = () => {
+    const url = "https://character.ai/chat/09DCYFnShJ4amZK4xg6EwqZAuKtm0OEkmhvHQlXHl64";
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-white shadow-md py-2" : "bg-transparent py-4"
-        }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled ? "bg-white shadow-md py-2" : "bg-transparent py-4"
+      }`}
     >
       <div className="container mx-auto px-4 flex justify-between items-center">
         {/* Logo + Título */}
         <Link href="#hero" className="flex items-center">
-          {/* Logo agrandado y margen ajustado */}
           <div className="w-24 h-24 relative mr-2 flex items-center justify-center">
             <Image
               src="/images/100diaslogo.png"
@@ -54,18 +66,39 @@ export default function Header() {
 
         {/* Navegación Desktop */}
         <nav className="hidden lg:flex items-center space-x-6">
-          {navLinks.map((link, idx) => (
-            <Link
-              key={idx}
-              href={link.href}
-              aria-label={link.ariaLabel}
-              className={`font-medium hover:text-accent transition-colors relative group ${isScrolled ? "text-primary" : "text-white"
+          {navLinks.map((link, idx) => {
+            // Si es “Chat Externo”, renderizamos un botón con onClick
+            if (link.label === "Chat Externo") {
+              return (
+                <button
+                  key={idx}
+                  aria-label={link.ariaLabel}
+                  onClick={openExternalChat}
+                  className={`font-medium hover:text-accent transition-colors relative group bg-transparent border-none p-0 ${
+                    isScrolled ? "text-primary" : "text-white"
+                  }`}
+                >
+                  {link.label}
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent transition-all duration-300 group-hover:w-full" />
+                </button>
+              );
+            }
+
+            // Para el resto de enlaces, usamos <Link>
+            return (
+              <Link
+                key={idx}
+                href={link.href}
+                aria-label={link.ariaLabel}
+                className={`font-medium hover:text-accent transition-colors relative group ${
+                  isScrolled ? "text-primary" : "text-white"
                 }`}
-            >
-              {link.label}
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent transition-all duration-300 group-hover:w-full" />
-            </Link>
-          ))}
+              >
+                {link.label}
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent transition-all duration-300 group-hover:w-full" />
+              </Link>
+            );
+          })}
         </nav>
 
         {/* Botón Mobile */}
@@ -87,17 +120,35 @@ export default function Header() {
         <div className="lg:hidden bg-white shadow-lg">
           <div className="container mx-auto px-4 py-4">
             <nav className="flex flex-col space-y-4">
-              {navLinks.map((link, idx) => (
-                <Link
-                  key={idx}
-                  href={link.href}
-                  aria-label={link.ariaLabel}
-                  className="text-primary font-medium hover:text-accent transition-colors py-2 border-b border-gray-100"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {navLinks.map((link, idx) => {
+                if (link.label === "Chat Externo") {
+                  return (
+                    <button
+                      key={idx}
+                      aria-label={link.ariaLabel}
+                      onClick={() => {
+                        openExternalChat();
+                        setIsMenuOpen(false);
+                      }}
+                      className="text-primary font-medium hover:text-accent transition-colors py-2 border-b border-gray-100 bg-transparent text-left"
+                    >
+                      {link.label}
+                    </button>
+                  );
+                }
+
+                return (
+                  <Link
+                    key={idx}
+                    href={link.href}
+                    aria-label={link.ariaLabel}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="text-primary font-medium hover:text-accent transition-colors py-2 border-b border-gray-100"
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
             </nav>
           </div>
         </div>
